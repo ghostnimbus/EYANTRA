@@ -1,0 +1,129 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "adc_cs_n",
+					"strict" : false
+				},
+				{
+					"name" : "din",
+					"strict" : false
+				},
+				{
+					"name" : "adc_clk",
+					"strict" : false
+				},
+				{
+					"name" : "enA",
+					"strict" : false
+				},
+				{
+					"name" : "enB",
+					"strict" : false
+				},
+				{
+					"name" : "in1",
+					"strict" : false
+				},
+				{
+					"name" : "in2",
+					"strict" : false
+				},
+				{
+					"name" : "in3",
+					"strict" : false
+				},
+				{
+					"name" : "in4",
+					"strict" : false
+				},
+				{
+					"name" : "tx",
+					"strict" : false
+				},
+				{
+					"name" : "filter[1]",
+					"strict" : false
+				},
+				{
+					"name" : "filter[0]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb1[2]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb1[1]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb1[0]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb2[2]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb2[1]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb2[0]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb3[2]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb3[1]",
+					"strict" : false
+				},
+				{
+					"name" : "rgb3[0]",
+					"strict" : false
+				},
+				{
+					"name" : "reset",
+					"strict" : false
+				},
+				{
+					"name" : "clk_50M",
+					"strict" : false
+				},
+				{
+					"name" : "dout",
+					"strict" : false
+				},
+				{
+					"name" : "cs_out",
+					"strict" : false
+				},
+				{
+					"name" : "rx",
+					"strict" : false
+				},
+				{
+					"name" : "altera_reserved_tms",
+					"strict" : false
+				},
+				{
+					"name" : "altera_reserved_tck",
+					"strict" : false
+				},
+				{
+					"name" : "altera_reserved_tdi",
+					"strict" : false
+				},
+				{
+					"name" : "altera_reserved_tdo",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

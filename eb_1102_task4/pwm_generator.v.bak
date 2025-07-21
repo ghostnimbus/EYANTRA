@@ -1,0 +1,68 @@
+module pwm_generator(
+    input clk_50MHz,            // Input clock at 50 MHz
+    output reg clk_1MHz,       // Output clock at 500 Hz
+    output reg pwm_f, pwm_b     // PWM signals
+);
+
+//////////////////DO NOT MAKE ANY CHANGES ABOVE THIS LINE //////////////////
+
+// Internal registers
+reg clk_500Hz = 1;              // Intermediate 1 MHz clock signal
+reg [4:0] counter_50MHz = 0;   // Counter for scaling 50 MHz to 1 MHz
+reg [10:0] counter_1MHz = 0;   // Counter for scaling 1 MHz to 500 Hz
+reg [10:0] pwm_counter = 0;    // Counter for PWM generation
+
+initial begin
+    clk_500Hz = 1;
+    pwm_f = 1;
+    pwm_b = 1;
+end
+
+// Generate 1 MHz clock from 50 MHz clock
+always @(posedge clk_50MHz) begin
+    if (counter_50MHz == 25) begin
+        clk_1MHz = ~clk_1MHz;   // Toggle 1 MHz clock
+        counter_50MHz = 0;      // Reset counter
+    end else begin
+        counter_50MHz = counter_50MHz + 1; // Increment counter
+    end
+end
+
+// Generate 500 Hz clock from 1 MHz clock
+always @(posedge clk_1MHz) begin
+    if (counter_1MHz == 1000) begin
+        clk_500Hz = ~clk_500Hz;
+    end else if (counter_1MHz == 2000) begin
+        clk_500Hz = ~clk_500Hz;
+        counter_1MHz = 0; // Reset counter
+    end else begin
+        counter_1MHz = counter_1MHz + 1; // Increment counter
+    end
+end
+
+// Generate PWM signals with specified duty cycles
+always @(posedge clk_500Hz) begin
+    if (pwm_counter < 500) begin
+        pwm_counter = pwm_counter + 1; // Increment PWM counter
+    end else begin
+        pwm_counter = 0; // Reset PWM counter
+    end
+
+    // PWM for pwm_f (50% duty cycle)
+    if (pwm_counter < 325) begin       // 25% of 500 is 125
+        pwm_f = 1;
+    end else begin
+        pwm_f = 0;
+    end
+
+    // PWM for pwm_b (15% duty cycle)
+    if (pwm_counter < 305) begin        // 15% of 500 is 75
+        pwm_b = 1;
+    end else begin
+        pwm_b = 0;
+    end
+end
+
+//////////////////DO NOT MAKE ANY CHANGES BELOW THIS LINE //////////////////
+
+endmodule

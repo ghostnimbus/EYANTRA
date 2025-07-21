@@ -1,0 +1,123 @@
+# Reading pref.tcl
+# do top_module_run_msim_rtl_verilog.do
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Model Technology ModelSim - Intel FPGA Edition vmap 2020.1 Lib Mapping Utility 2020.02 Feb 28 2020
+# vmap work rtl_work 
+# Copying C:/intelFPGA_lite/20.1/modelsim_ase/win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# 
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/turn_direction_logic.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:33 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/turn_direction_logic.v 
+# -- Compiling module turn_direction_logic
+# 
+# Top level modules:
+# 	turn_direction_logic
+# End time: 19:20:33 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/frequency_scaling.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:34 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/frequency_scaling.v 
+# -- Compiling module frequency_scaling
+# 
+# Top level modules:
+# 	frequency_scaling
+# End time: 19:20:34 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/ADC_Controller.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:34 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/ADC_Controller.v 
+# -- Compiling module ADC_Controller
+# 
+# Top level modules:
+# 	ADC_Controller
+# End time: 19:20:34 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/black_line_following.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:34 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/black_line_following.v 
+# -- Compiling module black_line_following
+# 
+# Top level modules:
+# 	black_line_following
+# End time: 19:20:34 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/pwm_generator.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:34 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/pwm_generator.v 
+# -- Compiling module pwm_generator
+# 
+# Top level modules:
+# 	pwm_generator
+# End time: 19:20:34 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/color_sensor.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:34 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/color_sensor.v 
+# -- Compiling module color_sensor
+# 
+# Top level modules:
+# 	color_sensor
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/led_logic.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:35 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/led_logic.v 
+# -- Compiling module led_logic
+# 
+# Top level modules:
+# 	led_logic
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/start_detector.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:35 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/start_detector.v 
+# -- Compiling module start_detector
+# 
+# Top level modules:
+# 	start_detector
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4 {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/uart_rx.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:35 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/uart_rx.v 
+# -- Compiling module uart_rx
+# 
+# Top level modules:
+# 	uart_rx
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files/SLM.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:35 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files/SLM.v 
+# -- Compiling module SLM
+# 
+# Top level modules:
+# 	SLM
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vlog -vlog01compat -work work +incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files {C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files/uart_tx.v}
+# Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+# Start time: 19:20:35 on Jul 21,2025
+# vlog -reportprogress 300 -vlog01compat -work work "+incdir+C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files" C:/Users/LeeladithyaSagar/Desktop/eb_1102_task4/output_files/uart_tx.v 
+# -- Compiling module uart_tx
+# 
+# Top level modules:
+# 	uart_tx
+# End time: 19:20:35 on Jul 21,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 

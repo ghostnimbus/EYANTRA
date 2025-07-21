@@ -1,0 +1,125 @@
+module black_line_follwoing(
+    input wire clk,
+    input wire reset,
+    input wire [2:0] line_sensor,      // Sensor input: 3-LED array
+    input wire robot_enabled,         // Enable signal
+    input wire [1:0] turn_direction,  // 00: Straight, 01: Left, 10: Right
+    input pwm_f,        // PWM signal for left motor
+    input pwm_b,        // PWM signal for right motor
+    output reg enA, enB,
+    output reg in2, in1, // Left motor control
+    output reg in4, in3  // Right motor control
+);
+
+	// State encoding using parameters
+    parameter IDLE = 2'b00;
+    parameter TURN = 2'b01;
+    parameter LINE_FOLLOW = 2'b10;
+
+    reg [1:0] current_state, next_state;
+    // State transition logic
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            current_state <= IDLE;
+        else
+            current_state <= next_state;
+    end
+
+    // Next state logic
+    always @(*) begin
+        case (current_state)
+            IDLE: begin
+                if (robot_enabled && line_sensor == 3'b111)  // Node detected and robot enabled
+                    next_state = TURN;
+                else if (robot_enabled)  // Robot enabled for line following
+                    next_state = LINE_FOLLOW;
+                else
+                    next_state = IDLE;
+            end
+            TURN: begin
+                if (line_sensor == 3'b010)  // Center sensor detects the line
+                    next_state = LINE_FOLLOW;
+                else
+                    next_state = TURN;
+            end
+            LINE_FOLLOW: begin
+                if (!robot_enabled)  // Robot disabled
+                    next_state = IDLE;
+                else if (line_sensor == 3'b111)  // Node detected during line following
+                    next_state = TURN;
+                else
+                    next_state = LINE_FOLLOW;
+            end
+            default: next_state = IDLE;
+        endcase
+    end
+
+    // Output logic
+    always @(*) begin
+            case (current_state)
+                IDLE: begin
+                   enA =  pwm_f; enB = pwm_f ;
+							in2 = 0;      in1 = 0;  // Left motor reverse
+							in4 = 0;      in3 = 0;  // Right motor forward;
+                end
+                TURN: begin
+                    case (turn_direction)
+                        2'b01: begin  // Left turn
+                            enA =  pwm_b; enB = pwm_f ;
+									 in2 = 0;      in1 = 1;  // Left motor reverse
+									 in4 = 1;      in3 = 0;  // Right motor forward
+                        end
+                        2'b10: begin  // Right turn
+                             enA =  pwm_f; enB = pwm_b ;
+									in2 = 1;      in1 = 0;  // Left motor forward
+									in4 = 0;      in3 = 1;  // Right motor reverse
+                        end
+                        2'b00: begin  // Straight
+                            enA =  pwm_f; enB = pwm_f ;
+									in2 = 1;      in1 = 0;  // Left motor forward
+									in4 = 1;      in3 = 0;  // Right motor forward
+                        end
+                        default: begin  // Stop
+                           enA =  pwm_b; enB = pwm_f ;
+									 in2 = 0;      in1 = 0;  // Left motor reverse
+									 in4 = 0;      in3 = 0;  // Right motor forward
+                        end
+                    endcase
+                end
+                LINE_FOLLOW: begin
+                    case (line_sensor)
+                        3'b100: begin  // Turn left
+                            enA =  pwm_f; enB = pwm_f ;
+									 in2 = 0;      in1 = 1;  // Left motor reverse
+									 in4 = 1;      in3 = 0;  // Right motor forward
+                        end
+                        3'b010: begin  // Go straight
+                            enA =  pwm_f; enB = pwm_f ;
+									in2 = 1;      in1 = 0;  // Left motor forward
+									in4 = 1;      in3 = 0;  // Right motor forward
+                        end
+                        3'b001: begin  // Turn right
+                            enA =  pwm_f; enB = pwm_f ;
+									in2 = 1;      in1 = 0;  // Left motor forward
+									in4 = 0;      in3 = 1;  // Right motor reverse
+									 end
+								3'b000: begin
+									 enA =  pwm_f; enB = pwm_f ;
+									 in2 = 0;      in1 = 0;  // Left motor reverse
+									 in4 = 0;      in3 = 0;  // Right motor forward
+								end
+                        default: begin  // Stop if no line detected
+                             enA =  pwm_f; enB = pwm_f ;
+									in2 = 1;      in1 = 0;  // Left motor forward
+									in4 = 1;      in3 = 0;  // Right motor forward
+                        end
+                    endcase
+                end
+                default: begin
+                    enA =  pwm_f; enB = pwm_f ;
+							in2 = 0;      in1 = 0;  // Left motor reverse
+							in4 = 0;      in3 = 0;  // Right motor forward;
+                end
+            endcase
+    end
+endmodule

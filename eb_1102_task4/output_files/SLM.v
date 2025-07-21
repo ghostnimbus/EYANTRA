@@ -1,0 +1,119 @@
+module SLM(
+    input wire clk_3125,               
+    input wire [1:0] color,        // Detected color: 1 = Red, 2 = Green, 3 = Blue
+	 input tx_done,
+    output reg tx_start,           // Signal to start transmission
+	 output reg [7:0] tx_msg
+);
+
+
+    reg [3:0] state;
+    reg [3:0] index;
+    reg [7:0] message [0:15];  // Message buffer, up to 16 characters
+    reg [1:0] fsu_count;       // Counter to track FSU numbers (0 to 2)
+
+    initial begin
+        tx_start = 0;
+        tx_msg = 8'h53;
+        state = 0;
+        index = 0;
+        fsu_count = 1;
+
+        message[0] = 8'h53;  // 'S'
+        message[1] = 8'h4C;  // 'L'
+        message[2] = 8'h4D;  // 'M'
+        message[3] = 8'h2D;  // '-'
+    end
+
+    // State machine for message transmission
+    always @(posedge clk_3125) begin
+	 
+		  message[0] = 8'h53;  // 'S'
+        message[1] = 8'h4C;  // 'L'
+        message[2] = 8'h4D;  // 'M'
+        message[3] = 8'h2D;  // '-'
+		  
+        case (state)
+            0: begin
+					 
+                if (color != 0 && index < 14) begin
+                    // Update the FSU number dynamically
+                    case (fsu_count)
+                        1: begin
+                            message[4] = 8'h46;  // 'F'
+                            message[5] = 8'h53;  // 'S'
+                            message[6] = 8'h55;  // 'U'
+                            message[7] = 8'h31;  // '1'
+                        end
+                        2: begin
+                            message[4] = 8'h46;  // 'F'
+                            message[5] = 8'h53;  // 'S'
+                            message[6] = 8'h55;  // 'U'
+                            message[7] = 8'h32;  // '2'
+                        end
+                        3: begin
+                            message[4] = 8'h46;  // 'F'
+                            message[5] = 8'h53;  // 'S'
+                            message[6] = 8'h55;  // 'U'
+                            message[7] = 8'h33;  // '3'
+                        end
+                    endcase
+
+                    
+                    message[8] = 8'h2D;  // '-'
+                    case (color)
+                        1: begin
+                            message[9] = 8'h49;  // 'I'
+                            message[10] = 8'h4D; // 'M'
+                        end
+                        2: begin
+                            message[9] = 8'h41;  // 'A'
+                            message[10] = 8'h53; // 'S'
+                        end
+                        3: begin
+                            message[9] = 8'h49;  // 'I'
+                            message[10] = 8'h53; // 'S'
+                        end
+                        default: begin
+                            message[9] = 8'h20;  // ' ' (space)
+                            message[10] = 8'h20; // ' ' (space)
+                        end
+                    endcase
+
+                    message[11] = 8'h2D;  // '-'
+                    message[12] = 8'h23;  // '#'
+                    message[13] = 8'h20;  // ' ' (space, end of message)
+//                    index = 0;
+
+                    if (fsu_count == 3)
+                        fsu_count <= 1;
+                    else
+                        fsu_count <= fsu_count + 1;
+
+                    state = 1; 
+                end
+            end
+
+            1: begin
+				if (color == 0) begin
+					index <= 0;       // Reset index
+					state <= 0;       // Go back to idle state
+				end else if (index < 14) begin
+						tx_msg <= message[index];
+						tx_start <= 1;
+						state <= 2;
+					end
+				end
+
+
+            2: begin
+                tx_start <= 0;
+                if (tx_done) begin
+                    index <= index + 1;
+                    state <= 1;  
+                end
+            end
+        endcase
+    end
+
+endmodule

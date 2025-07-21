@@ -1,0 +1,4 @@
+Warning (10268): Verilog HDL information at uart_rx.v(67): always construct contains both blocking and non-blocking assignments File: C:/Users/Leeladithya Sagar/Desktop/eb_1102_task4/uart_rx.v Line: 67
+Info (10281): Verilog HDL Declaration information at uart_rx.v(48): object "PARITY" differs only in case from object "parity" in the same scope File: C:/Users/Leeladithya Sagar/Desktop/eb_1102_task4/uart_rx.v Line: 48
+Warning (10268): Verilog HDL information at SLM.v(29): always construct contains both blocking and non-blocking assignments File: C:/Users/Leeladithya Sagar/Desktop/eb_1102_task4/output_files/SLM.v Line: 29
+Info (10281): Verilog HDL Declaration information at uart_tx.v(34): object "data" differs only in case from object "DATA" in the same scope File: C:/Users/Leeladithya Sagar/Desktop/eb_1102_task4/output_files/uart_tx.v Line: 34

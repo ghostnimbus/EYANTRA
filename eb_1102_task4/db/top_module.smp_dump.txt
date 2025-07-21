@@ -1,0 +1,35 @@
+
+State Machine - |top_module|led_logic:inst8|led_no
+Name led_no.00 led_no.10 led_no.01 
+led_no.00 0 0 0 
+led_no.01 1 0 1 
+led_no.10 1 1 0 
+
+State Machine - |top_module|SLM:inst9|state
+Name state.0000 state.0010 state.0001 
+state.0000 0 0 0 
+state.0001 1 0 1 
+state.0010 1 1 0 
+
+State Machine - |top_module|uart_tx:inst1|state
+Name state.DONE state.STOP state.PARITY state.DATA state.START state.IDLE 
+state.IDLE 0 0 0 0 0 0 
+state.START 0 0 0 0 1 1 
+state.DATA 0 0 0 1 0 1 
+state.PARITY 0 0 1 0 0 1 
+state.STOP 0 1 0 0 0 1 
+state.DONE 1 0 0 0 0 1 
+
+State Machine - |top_module|uart_rx:inst3|state
+Name state.PARITY state.DATA state.START state.IDLE state.STOP 
+state.IDLE 0 0 0 0 0 
+state.START 0 0 1 1 0 
+state.DATA 0 1 0 1 0 
+state.PARITY 1 0 0 1 0 
+state.STOP 0 0 0 1 1 
+
+State Machine - |top_module|black_line_following:inst2|current_state
+Name current_state.IDLE current_state.LINE_FOLLOW current_state.TURN 
+current_state.IDLE 0 0 0 
+current_state.TURN 1 0 1 
+current_state.LINE_FOLLOW 1 1 0 
