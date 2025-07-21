@@ -1,0 +1,5 @@
+Warning (10273): Verilog HDL warning at imm_extend.v(19): extended using "x" or "z" File: C:/Users/LeeladithyaSagar/Downloads/eb_1102_task5/code/components/imm_extend.v Line: 19
+Warning (10268): Verilog HDL information at uart_rx.v(67): always construct contains both blocking and non-blocking assignments File: C:/Users/LeeladithyaSagar/Downloads/eb_1102_task5/uart_rx.v Line: 67
+Info (10281): Verilog HDL Declaration information at uart_rx.v(48): object "PARITY" differs only in case from object "parity" in the same scope File: C:/Users/LeeladithyaSagar/Downloads/eb_1102_task5/uart_rx.v Line: 48
+Info (10281): Verilog HDL Declaration information at uart_tx.v(34): object "data" differs only in case from object "DATA" in the same scope File: C:/Users/LeeladithyaSagar/Downloads/eb_1102_task5/uart_tx.v Line: 34
+Warning (10268): Verilog HDL information at node_position_direction.v(70): always construct contains both blocking and non-blocking assignments File: C:/Users/LeeladithyaSagar/Downloads/eb_1102_task5/node_position_direction.v Line: 70

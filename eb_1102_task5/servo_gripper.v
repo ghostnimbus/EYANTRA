@@ -1,0 +1,295 @@
+module servo_gripper(
+    input clk,
+    input reset,
+    input grip_trigger,
+    input leave_trigger,
+    output s1_s,
+    output s2_s,
+	 output reg grip_done, leave_done
+);
+
+//---------------------------------------------------------------------
+// Parameters for arm servo
+//---------------------------------------------------------------------
+parameter PWM_UPPER_LIMIT = 17'd95_000;   // 110°
+parameter PWM_LOWER_LIMIT = 17'd70_000;   // -30°
+parameter STEP_INTERVAL_ARM = 26'd500_000; // 10ms step interval (500,000 cycles @50MHz)
+parameter STEP_SIZE_ARM = 17'd500;
+
+//---------------------------------------------------------------------
+// Parameters for gripper servo
+//---------------------------------------------------------------------
+parameter PWM_OPEN   = 17'd87_500;  // 90° (open position)
+parameter PWM_CLOSED = 17'd62_500;  // -45° (closed position)
+parameter STEP_INTERVAL_GRIP = 26'd500_000;
+parameter STEP_SIZE_GRIP = 17'd500;
+
+//---------------------------------------------------------------------
+// State definitions
+//---------------------------------------------------------------------
+parameter [3:0] 
+    IDLE                  = 4'd0,
+    GRIP_MOVING_DOWN      = 4'd1,
+    GRIP_WAIT_1           = 4'd2,
+    GRIP_CLOSING_GRIPPER  = 4'd3,
+    GRIP_WAIT_2           = 4'd4,
+    GRIP_MOVING_UP        = 4'd5,
+    LEAVE_MOVING_DOWN     = 4'd6,
+    LEAVE_OPENING_GRIPPER  = 4'd7,
+    LEAVE_WAIT            = 4'd8,
+    LEAVE_MOVING_UP       = 4'd9;
+
+//---------------------------------------------------------------------
+// Registers and wires
+//---------------------------------------------------------------------
+reg [3:0] current_state, next_state;
+
+// Edge detection for triggers
+reg grip_trigger_prev, leave_trigger_prev;
+wire grip_rise, leave_rise;
+
+// Arm servo control registers
+reg [16:0] arm_control;
+reg [16:0] arm_target;
+reg [25:0] arm_step_counter;
+wire arm_target_reached;
+
+// Gripper servo control registers
+reg [16:0] gripper_control;
+reg [16:0] gripper_target;
+reg [25:0] gripper_step_counter;
+wire gripper_target_reached;
+
+//---------------------------------------------------------------------
+// State-based 1-second timer (resets on state change)
+//---------------------------------------------------------------------
+reg [25:0] state_timer;
+reg [3:0] prev_state;
+wire timer_1s_done;
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        state_timer <= 0;
+        prev_state  <= IDLE;
+    end else begin
+        if (current_state != prev_state) begin
+            state_timer <= 0;
+            prev_state  <= current_state;
+        end else if (state_timer < 26'd50_000_000)
+            state_timer <= state_timer + 1;
+    end
+end
+assign timer_1s_done = (state_timer == 26'd50_000_000);
+
+//---------------------------------------------------------------------
+// PWM counters and registers
+//---------------------------------------------------------------------
+reg [19:0] arm_counter, gripper_counter;
+reg arm_servo_reg, gripper_servo_reg;
+
+// Internal flag: indicates whether an object is held.
+// (Not used to drive the gripper target directly anymore.)
+reg object_held;
+
+//---------------------------------------------------------------------
+// Edge detection for external triggers
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        grip_trigger_prev  <= 0;
+        leave_trigger_prev <= 0;
+    end else begin
+        grip_trigger_prev  <= grip_trigger;
+        leave_trigger_prev <= leave_trigger;
+    end
+end
+assign grip_rise  = grip_trigger && !grip_trigger_prev;
+assign leave_rise = leave_trigger && !leave_trigger_prev;
+
+//---------------------------------------------------------------------
+// State transition logic
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset)
+        current_state <= IDLE;
+    else
+        current_state <= next_state;
+end
+
+always @(*) begin
+    next_state = current_state; // Default: no change
+    case (current_state)
+        IDLE: begin
+				grip_done = 0;
+				leave_done = 0;
+            if (grip_rise)
+                next_state = GRIP_MOVING_DOWN;
+            else if (leave_rise)
+                next_state = LEAVE_MOVING_DOWN;
+        end
+        GRIP_MOVING_DOWN: 
+            if (arm_target_reached)
+                next_state = GRIP_WAIT_1;
+        GRIP_WAIT_1: 
+            if (timer_1s_done)
+                next_state = GRIP_CLOSING_GRIPPER;
+        GRIP_CLOSING_GRIPPER: 
+            if (gripper_target_reached)
+                next_state = GRIP_WAIT_2;
+        GRIP_WAIT_2: 
+            if (timer_1s_done)
+                next_state = GRIP_MOVING_UP;
+        GRIP_MOVING_UP: 
+            if (arm_target_reached) begin
+                next_state = IDLE;
+					 grip_done = 1;
+				end
+        LEAVE_MOVING_DOWN: 
+            if (arm_target_reached)
+                next_state = LEAVE_OPENING_GRIPPER;
+        LEAVE_OPENING_GRIPPER: 
+            if (gripper_target_reached)
+                next_state = LEAVE_WAIT;
+        LEAVE_WAIT: 
+            if (timer_1s_done)
+                next_state = LEAVE_MOVING_UP;
+        LEAVE_MOVING_UP: 
+            if (arm_target_reached) begin
+                next_state = IDLE;
+					 leave_done = 1;
+				end
+        default: next_state = IDLE;
+    endcase
+end
+
+//---------------------------------------------------------------------
+// Update object-held flag
+// When the arm finishes moving up in a grip sequence, set object_held.
+// When the arm finishes moving up in a leave sequence, clear it.
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset)
+        object_held <= 0;
+    else begin
+        if (current_state == GRIP_MOVING_UP && arm_target_reached)
+            object_held <= 1;
+        if (current_state == LEAVE_MOVING_UP && arm_target_reached)
+            object_held <= 0;
+    end
+end
+
+//---------------------------------------------------------------------
+// Arm servo control (smooth movement)
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        arm_control <= PWM_UPPER_LIMIT;
+        arm_step_counter <= 0;
+    end else begin
+        if (arm_control < arm_target) begin
+            if (arm_step_counter >= STEP_INTERVAL_ARM) begin
+                arm_step_counter <= 0;
+                arm_control <= arm_control + STEP_SIZE_ARM;
+            end else
+                arm_step_counter <= arm_step_counter + 1;
+        end else if (arm_control > arm_target) begin
+            if (arm_step_counter >= STEP_INTERVAL_ARM) begin
+                arm_step_counter <= 0;
+                arm_control <= arm_control - STEP_SIZE_ARM;
+            end else
+                arm_step_counter <= arm_step_counter + 1;
+        end
+    end
+end
+assign arm_target_reached = (arm_control == arm_target);
+
+//---------------------------------------------------------------------
+// Gripper servo control (smooth movement)
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        gripper_control <= PWM_OPEN;  // Start in open position
+        gripper_step_counter <= 0;
+    end else begin
+        if (gripper_control < gripper_target) begin
+            if (gripper_step_counter >= STEP_INTERVAL_GRIP) begin
+                gripper_step_counter <= 0;
+                gripper_control <= gripper_control + STEP_SIZE_GRIP;
+            end else
+                gripper_step_counter <= gripper_step_counter + 1;
+        end else if (gripper_control > gripper_target) begin
+            if (gripper_step_counter >= STEP_INTERVAL_GRIP) begin
+                gripper_step_counter <= 0;
+                gripper_control <= gripper_control - STEP_SIZE_GRIP;
+            end else
+                gripper_step_counter <= gripper_step_counter + 1;
+        end
+    end
+end
+assign gripper_target_reached = (gripper_control == gripper_target);
+
+//---------------------------------------------------------------------
+// PWM generation for arm servo
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        arm_counter <= 0;
+        arm_servo_reg <= 0;
+    end else begin
+        arm_counter <= arm_counter + 1;
+        if (arm_counter == 20'd999_999)
+            arm_counter <= 0;
+        arm_servo_reg <= (arm_counter < arm_control);
+    end
+end
+assign s1_s = arm_servo_reg;
+
+//---------------------------------------------------------------------
+// PWM generation for gripper servo
+//---------------------------------------------------------------------
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        gripper_counter <= 0;
+        gripper_servo_reg <= 0;
+    end else begin
+        gripper_counter <= gripper_counter + 1;
+        if (gripper_counter == 20'd999_999)
+            gripper_counter <= 0;
+        gripper_servo_reg <= (gripper_counter < gripper_control);
+    end
+end
+assign s2_s = gripper_servo_reg;
+
+//---------------------------------------------------------------------
+// Target control logic for arm servo
+//---------------------------------------------------------------------
+always @(*) begin
+    case (current_state)
+        GRIP_MOVING_DOWN:    arm_target = PWM_LOWER_LIMIT;
+        GRIP_MOVING_UP:      arm_target = PWM_UPPER_LIMIT;
+        LEAVE_MOVING_DOWN:   arm_target = PWM_LOWER_LIMIT;
+        LEAVE_MOVING_UP:     arm_target = PWM_UPPER_LIMIT;
+        default:             arm_target = arm_control; // Hold current position
+    endcase
+end
+
+//---------------------------------------------------------------------
+// Revised target control logic for gripper servo
+// Each state now explicitly sets the gripper target.
+//---------------------------------------------------------------------
+always @(*) begin
+    case (current_state)
+        IDLE:                 gripper_target = object_held ? PWM_CLOSED : PWM_OPEN;
+        GRIP_MOVING_DOWN:     gripper_target = PWM_OPEN;
+        GRIP_WAIT_1:          gripper_target = PWM_OPEN;
+        GRIP_CLOSING_GRIPPER: gripper_target = PWM_CLOSED;
+        GRIP_WAIT_2:          gripper_target = PWM_CLOSED;
+        GRIP_MOVING_UP:       gripper_target = PWM_CLOSED;
+        LEAVE_MOVING_DOWN:    gripper_target = PWM_CLOSED;
+        LEAVE_OPENING_GRIPPER:gripper_target = PWM_OPEN;
+        LEAVE_WAIT:           gripper_target = PWM_OPEN;
+        LEAVE_MOVING_UP:      gripper_target = PWM_OPEN;
+        default:              gripper_target = PWM_OPEN;
+    endcase
+end
+
+endmodule

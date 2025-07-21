@@ -1,0 +1,209 @@
+module SLM(
+    input  wire         clk_3125,
+    input  wire         rst,          // Asynchronous reset
+    input  wire [1:0]   color,        // Detected color: 1 = Red, 2 = Green, 3 = Blue
+    input  wire [1:0]   unit_type,  // 1 = PSU, 2 = FSU, 3 = WSU
+    input  wire         tx_done,      // Transmission done signal
+    output reg          tx_start,     // Start transmission signal
+	 output reg SLM_active,
+    output reg [7:0]    tx_msg        // Transmitted character
+);
+
+    // State definitions
+    reg [3:0] state;
+    localparam S_IDLE = 0,
+               S_LOAD = 1,
+               S_TX   = 2,
+               S_WAIT = 3;
+               
+    // Index into the message
+    reg [3:0] index;
+    
+    // Message memory: up to 16 characters
+    reg [7:0] message [0:15];
+    
+    // Counters for each unit type
+    reg [1:0] psu_count, fsu_count, wsu_count;  // Counts: 1, 2, or 3
+
+    // Synchronous reset and state update
+    integer i;
+    always @(posedge clk_3125 or posedge rst) begin
+        if (rst) begin
+            tx_start   <= 0;
+            tx_msg     <= 8'h53;  // 'S'
+            state      <= S_IDLE;
+            index      <= 0;
+            psu_count  <= 1;
+            fsu_count  <= 1;
+            wsu_count  <= 1;
+				SLM_active <= 0;
+            // Initialize message memory to spaces (optional)
+            for (i = 0; i < 16; i = i + 1)
+                message[i] <= 8'h20;
+            // Set fixed header "SLM-"
+            message[0] <= 8'h53;  // 'S'
+            message[1] <= 8'h4C;  // 'L'
+            message[2] <= 8'h4D;  // 'M'
+            message[3] <= 8'h2D;  // '-'
+        end else begin
+            case (state)
+                S_IDLE: begin
+							SLM_active <= 0;
+                    // Update header (in case it was overwritten)
+                    message[0] <= 8'h53;  // 'S'
+                    message[1] <= 8'h4C;  // 'L'
+                    message[2] <= 8'h4D;  // 'M'
+                    message[3] <= 8'h2D;  // '-'
+                    // Only update message if a color is detected (non-zero)
+                    if (color != 0 && index < 14) begin
+                        // Select the unit ID based on unit_select:
+                        case (unit_type)
+                            2'd1: begin // PSU
+                                case (psu_count)
+                                    2'd1: begin
+                                        message[4] <= 8'h50;  // 'P'
+                                        message[5] <= 8'h53;  // 'S'
+                                        message[6] <= 8'h55;  // 'U'
+                                        message[7] <= 8'h31;  // '1'
+                                    end
+                                    2'd2: begin
+                                        message[4] <= 8'h50;  // 'P'
+                                        message[5] <= 8'h53;  // 'S'
+                                        message[6] <= 8'h55;  // 'U'
+                                        message[7] <= 8'h32;  // '2'
+                                    end
+                                    2'd3: begin
+                                        message[4] <= 8'h50;  // 'P'
+                                        message[5] <= 8'h53;  // 'S'
+                                        message[6] <= 8'h55;  // 'U'
+                                        message[7] <= 8'h33;  // '3'
+                                    end
+                                endcase
+                            end
+                            2'd2: begin // FSU
+                                case (fsu_count)
+                                    2'd1: begin
+                                        message[4] <= 8'h46;  // 'F'
+                                        message[5] <= 8'h53;  // 'S'
+                                        message[6] <= 8'h55;  // 'U'
+                                        message[7] <= 8'h31;  // '1'
+                                    end
+                                    2'd2: begin
+                                        message[4] <= 8'h46;
+                                        message[5] <= 8'h53;
+                                        message[6] <= 8'h55;
+                                        message[7] <= 8'h32;  // '2'
+                                    end
+                                    2'd3: begin
+                                        message[4] <= 8'h46;
+                                        message[5] <= 8'h53;
+                                        message[6] <= 8'h55;
+                                        message[7] <= 8'h33;  // '3'
+                                    end
+                                endcase
+                            end
+                            2'd3: begin // WSU
+                                case (wsu_count)
+                                    2'd1: begin
+                                        message[4] <= 8'h57;  // 'W'
+                                        message[5] <= 8'h53;  // 'S'
+                                        message[6] <= 8'h55;  // 'U'
+                                        message[7] <= 8'h31;  // '1'
+                                    end
+                                    2'd2: begin
+                                        message[4] <= 8'h57;
+                                        message[5] <= 8'h53;
+                                        message[6] <= 8'h55;
+                                        message[7] <= 8'h32;  // '2'
+                                    end
+                                    2'd3: begin
+                                        message[4] <= 8'h57;
+                                        message[5] <= 8'h53;
+                                        message[6] <= 8'h55;
+                                        message[7] <= 8'h33;  // '3'
+                                    end
+                                endcase
+                            end
+                            default: begin
+                                message[4] <= 8'h20; message[5] <= 8'h20;
+                                message[6] <= 8'h20; message[7] <= 8'h20;
+                            end
+                        endcase
+                        
+                        message[8]  <= 8'h2D;  // '-'
+                        // Set color-based code in positions 9 and 10.
+                        case (color)
+                            2'd1: begin
+                                message[9]  <= 8'h49;  // 'I'
+                                message[10] <= 8'h4D;  // 'M'
+                            end
+                            2'd2: begin
+                                message[9]  <= 8'h41;  // 'A'
+                                message[10] <= 8'h53;  // 'S'
+                            end
+                            2'd3: begin
+                                message[9]  <= 8'h49;  // 'I'
+                                message[10] <= 8'h53;  // 'S'
+                            end
+                            default: begin
+                                message[9]  <= 8'h20;
+                                message[10] <= 8'h20;
+                            end
+                        endcase
+                        message[11] <= 8'h2D;  // '-'
+                        message[12] <= 8'h23;  // '#'
+                        message[13] <= 8'h20;  // Space (end marker)
+                        
+                        // Update the corresponding unit counter.
+                        case (unit_type)
+                            2'd1: begin
+                                if (psu_count == 2'd3)
+                                    psu_count <= 2'd1;
+                                else
+                                    psu_count <= psu_count + 1;
+                            end
+                            2'd2: begin
+                                if (fsu_count == 2'd3)
+                                    fsu_count <= 2'd1;
+                                else
+                                    fsu_count <= fsu_count + 1;
+                            end
+                            2'd3: begin
+                                if (wsu_count == 2'd3)
+                                    wsu_count <= 2'd1;
+                                else
+                                    wsu_count <= wsu_count + 1;
+                            end
+                        endcase
+                        
+                        state <= S_TX;
+                    end
+                end
+                
+                S_TX: begin
+                    // If no color is detected, reset index and return to idle.
+                    if (color == 0) begin
+                        index <= 0;
+                        state <= S_IDLE;
+                    end else if (index < 14) begin
+                        tx_msg   <= message[index];
+                        tx_start <= 1;
+                        state    <= S_WAIT;
+                    end
+						  SLM_active <= 1;
+                end
+                
+                S_WAIT: begin
+                    tx_start <= 0;
+                    if (tx_done) begin
+                        index <= index + 1;
+                        state <= S_TX;
+                    end
+                end
+                
+                default: state <= S_IDLE;
+            endcase
+        end
+    end
+
+endmodule

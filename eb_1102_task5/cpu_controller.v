@@ -1,0 +1,74 @@
+module cpu_controller (
+    input clk, mem_write,
+    input [4:0] start_node, end_node,
+    input [31:0] riscv_rd_data, riscv_rd_addr,
+    output reg reset, ext_mem_wrt,
+    output reg [31:0] ext_wrt_data, ext_data_addr,
+    output [74:0] node_values,
+	 output reg [3:0] path_length // Register to store data from 0x020000E0
+);
+
+parameter WRITE_MEM = 2'b00, READ_MEM = 2'b01, IDLE = 2'b10;
+
+initial begin
+    reset = 1;
+end
+
+reg [4:0] path [11:0];
+reg [3:0] index = 0;
+reg [1:0] present = IDLE;
+reg [4:0] start_point_prev = 0;
+reg [4:0] end_point_prev = 0;
+
+always@(posedge clk) begin
+    start_point_prev <= start_node;
+    end_point_prev <= end_node;
+end
+
+always @(posedge clk) begin
+    case (present)
+    WRITE_MEM: begin
+        index <= index + 1'b1; ext_mem_wrt <= 1; reset <= 1;
+        if (index == 1) begin
+            ext_wrt_data <= start_node; ext_data_addr <= 32'h02000000;
+        end
+        else if (index == 2) begin
+            ext_wrt_data <= end_node; ext_data_addr <= 32'h02000004;
+        end
+        else if (index == 3) begin
+            ext_mem_wrt <= 0; index <= 0; present <= READ_MEM; reset <= 0;
+        end
+    end
+    READ_MEM: begin
+        if (riscv_rd_addr == 32'h02000008 && mem_write == 1) begin
+            path[index] <= riscv_rd_data[7:0];
+            index <= index + 1'b1;
+        end
+        if (riscv_rd_addr == 32'h0200000c && riscv_rd_data == 1 && mem_write == 1) begin
+            present <= IDLE;
+				//path_length <= index;
+        end
+        if (riscv_rd_addr == 32'h020000e0 && mem_write == 1) begin
+            path_length <= riscv_rd_data[3:0]; // Store value from 0x020000E0
+        end
+    end
+    IDLE: begin
+        index <= 0; 
+        if (start_point_prev != start_node || end_point_prev != end_node) begin
+            present <= WRITE_MEM;
+            ext_mem_wrt <= 1;
+            reset <= 1;
+        end else begin
+            present <= IDLE;
+            ext_mem_wrt <= 0;
+            reset <= 0;
+        end
+    end
+    endcase
+end
+
+ //path[15], path[14], path[13], path[12], path[11],  
+assign node_values =	{path[11], path[10],  path[9], path[8], path[7],  path[6],  
+							 path[5],  path[4],  path[3], path[2],  path[1], path[0]};
+
+endmodule

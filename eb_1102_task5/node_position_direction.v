@@ -1,0 +1,136 @@
+module node_position_direction (
+    input clk,
+    input [74:0] node_values,   // Fixed: 88 bits = 11 nodes × 8 bits
+    input [3:0] path_length,    // Number of valid nodes (maximum 11)
+	 input [4:0] prev_node_of_start_point, // External previous node of the start point
+    output reg [23:0] directions, // Packed directional decisions (2 bits each)
+    output reg [4:0] last_endpoint1, // Last but one node of the planned path
+    output reg [4:0] last_endpoint0  // Last node of the planned path
+);
+
+  // Direction encoding.
+  parameter LEFT     = 2'b01,
+            STRAIGHT = 2'b11,
+            RIGHT    = 2'b10,
+				U_TURN   = 2'b00;
+
+  // get_coord: Returns an 8-bit combined coordinate for a given node index.
+  // The upper 4 bits represent x and the lower 4 bits represent y.
+  function [7:0] get_coord;
+      input [4:0] node;
+      reg signed [3:0] x;
+      reg signed [3:0] y;
+      begin
+          case (node)
+              5'd0:  begin x = -3; y =  0; end
+              5'd1:  begin x =  3; y =  0; end
+              5'd2:  begin x =  3; y = -2; end
+              5'd3:  begin x =  4; y = -2; end
+              5'd4:  begin x =  3; y = -3; end
+              5'd5:  begin x =  2; y = -2; end
+              5'd6:  begin x = -3; y = -2; end
+              5'd7:  begin x = -2; y = -2; end
+              5'd8:  begin x = -3; y = -3; end
+              5'd9:  begin x = -4; y = -2; end
+              5'd10: begin x = -3; y =  2; end
+              5'd11: begin x =  3; y =  2; end
+              5'd12: begin x =  5; y =  2; end
+              5'd13: begin x =  5; y =  3; end
+              5'd14: begin x =  7; y =  4; end
+              5'd15: begin x =  6; y =  4; end
+              5'd16: begin x =  5; y =  6; end
+              5'd17: begin x =  4; y =  5; end
+              5'd18: begin x =  3; y =  6; end
+              5'd19: begin x =  3; y =  4; end
+              5'd20: begin x =  2; y =  4; end
+              5'd21: begin x =  0; y =  6; end
+              5'd22: begin x =  0; y =  5; end
+              5'd23: begin x = -3; y =  6; end
+              5'd24: begin x = -3; y =  4; end
+              5'd25: begin x = -2; y =  4; end
+              5'd26: begin x = -5; y =  2; end
+              5'd27: begin x = -5; y =  3; end
+              5'd28: begin x = -7; y =  4; end
+              5'd29: begin x = -6; y =  4; end
+              5'd30: begin x = -5; y =  6; end
+              5'd31: begin x = -4; y =  5; end
+              default: begin x = 0; y = 0; end
+          endcase
+          get_coord = {x, y};
+      end
+  endfunction
+
+  integer i;
+  reg signed [3:0] x_prev, y_prev, x_curr, y_curr, x_next, y_next;
+  reg signed [3:0] Ax, Ay, Bx, By;
+  reg signed [7:0] cross;
+  reg [1:0] computed_direction;
+  reg [4:0] node_prev, node_curr, node_next;
+
+  always @(posedge clk) begin
+      // Clear directions.
+      directions <= 24'd0;
+      // Compute turning directions for each valid triple.
+      // We want to compute for every triple starting at index 1 up to (path_length - 2).
+      // For the very first triple (i==0), node_prev comes from prev_node_of_start_point,
+      // and node_curr is the start point (node_values[7:0]).
+      // For i >= 1, all nodes come from node_values.
+      for (i = 0; (i < path_length - 2) && (i < 10); i = i + 1) begin
+          if (i == 0) begin
+              // For the first triple, use external previous node.
+              node_prev = prev_node_of_start_point;
+              node_curr = node_values[0 +: 5];      // start point
+              node_next = node_values[5 +: 5];      // second node
+          end else begin
+              node_prev = node_values[((i-1)*5) +: 5];
+              node_curr = node_values[(i*5) +: 5];
+              node_next = node_values[((i+1)*5) +: 5];
+          end
+
+          // Get (x, y) coordinates for each node.
+          {x_prev, y_prev} = get_coord(node_prev);
+          {x_curr, y_curr} = get_coord(node_curr);
+          {x_next, y_next} = get_coord(node_next);
+
+          // Compute vectors: A = current - previous, B = next - current.
+          Ax = x_curr - x_prev;
+          Ay = y_curr - y_prev;
+          Bx = x_next - x_curr;
+          By = y_next - y_curr;
+
+          // Compute cross product: cross = (Ax * By) - (Ay * Bx).
+          cross = Ax * By - Ay * Bx;
+
+          // Determine turning direction.
+			 if (node_prev == node_next)
+              computed_direction = U_TURN;
+			 else if(node_curr == 26 && node_prev == 10 && node_next == 28)
+				  computed_direction = STRAIGHT;
+			 else if(node_curr == 28 && (node_next == 26 || node_prev == 30) && (node_next == 30 || node_prev == 26))
+				  computed_direction = STRAIGHT;
+			 else if(node_curr == 30 && node_prev == 23 && node_next == 28)
+				  computed_direction = STRAIGHT;
+			 else if(node_curr == 12 && node_prev == 11 && node_next == 14)
+				  computed_direction = STRAIGHT;
+			 else if(node_curr == 14 && (node_next == 16 || node_prev == 12) && (node_next == 12 || node_prev == 16))
+				  computed_direction = STRAIGHT;
+			 else if(node_curr == 16 && node_prev == 18 && node_next == 14)
+				  computed_direction = STRAIGHT;
+          else if (cross > 0)
+              computed_direction = LEFT;
+          else if (cross == 0)
+              computed_direction = STRAIGHT;
+          else
+              computed_direction = RIGHT;
+
+          // Pack computed direction into lower bits of 'directions'.
+          // The (i-1)th computed direction is stored at bits [(i-1)*2 +: 2].
+          directions[i*2 +: 2] = computed_direction;
+      end
+
+      // Since path_length is always > 3, assign the last two endpoints unconditionally.
+      last_endpoint0 <= node_values[((path_length-2)*5) +: 5];
+      last_endpoint1 <= node_values[((path_length-1)*5) +: 5];
+  end
+
+endmodule

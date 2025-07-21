@@ -1,0 +1,23 @@
+module message_selector(
+    input  wire        RDM_active,  // Active when Resource Deposition Message is to be sent
+    input  wire        RPM_active,  // Active when Resource Pick Message is to be sent
+    input  wire        SLM_active,  // Active when Sustainability Level Message is to be sent
+    input  wire [7:0]  RDM_data,    // 8-bit data for RDM
+    input  wire [7:0]  RPM_data,    // 8-bit data for RPM
+    input  wire [7:0]  SLM_data,    // 8-bit data for SLM
+    output reg  [7:0]  tx_data      // Selected 8-bit data to transmit
+);
+
+  always @(*) begin
+    // Priority: RDM > RPM > SLM.
+    if (RDM_active)
+      tx_data = RDM_data;
+    else if (RPM_active)
+      tx_data = RPM_data;
+    else if (SLM_active)
+      tx_data = SLM_data;
+    else
+      tx_data = 8'd0; // Default value when none are active.
+  end
+
+endmodule

@@ -1,0 +1,115 @@
+module Black_line_following(
+    input wire clk,
+    input wire reset,
+    input wire [2:0] line_sensor,      // Sensor input: 3-LED array
+    input wire robot_enabled,         // Enable signal
+    input wire [1:0] turn_direction,  // 00: Straight, 01: Left, 10: Right
+    output reg motor_left,            // Motor control for the left motor
+    output reg motor_right            // Motor control for the right motor
+);
+
+    // State encoding
+    typedef enum reg [1:0] {
+        IDLE = 2'b00,
+        TURN = 2'b01,
+        LINE_FOLLOW = 2'b10
+    } state_t;
+    state_t current_state, next_state;
+
+    // State transition logic
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            current_state <= IDLE;
+        else
+            current_state <= next_state;
+    end
+
+    // Next state logic
+    always @(*) begin
+        case (current_state)
+            IDLE: begin
+                if (robot_enabled && line_sensor == 3'b111)  // Node detected and robot enabled
+                    next_state = TURN;
+                else if (robot_enabled)  // Robot enabled for line following
+                    next_state = LINE_FOLLOW;
+                else
+                    next_state = IDLE;
+            end
+            TURN: begin
+                if (line_sensor == 3'b010)  // Center sensor detects the line
+                    next_state = LINE_FOLLOW;
+                else
+                    next_state = TURN;
+            end
+            LINE_FOLLOW: begin
+                if (!robot_enabled)  // Robot disabled
+                    next_state = IDLE;
+                else if (line_sensor == 3'b111)  // Node detected during line following
+                    next_state = TURN;
+                else
+                    next_state = LINE_FOLLOW;
+            end
+            default: next_state = IDLE;
+        endcase
+    end
+
+    // Output logic
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            motor_left <= 0;
+            motor_right <= 0;
+        end else begin
+            case (current_state)
+                IDLE: begin
+                    motor_left <= 0;  // Stop motors
+                    motor_right <= 0;
+                end
+                TURN: begin
+                    case (turn_direction)
+                        2'b01: begin  // Left turn
+                            motor_left <= 0;  // Slow/stop left motor
+                            motor_right <= 1; // Move right motor forward
+                        end
+                        2'b10: begin  // Right turn
+                            motor_left <= 1;  // Move left motor forward
+                            motor_right <= 0; // Slow/stop right motor
+                        end
+                        2'b00: begin  // Straight
+                            motor_left <= 1;
+                            motor_right <= 1;
+                        end
+                        default: begin  // Stop
+                            motor_left <= 0;
+                            motor_right <= 0;
+                        end
+                    endcase
+                end
+                LINE_FOLLOW: begin
+                    case (line_sensor)
+                        3'b100: begin  // Turn left
+                            motor_left <= 1;
+                            motor_right <= 0;
+                        end
+                        3'b010: begin  // Go straight
+                            motor_left <= 1;
+                            motor_right <= 1;
+                        end
+                        3'b001: begin  // Turn right
+                            motor_left <= 0;
+                            motor_right <= 1;
+                        end
+                        default: begin  // Stop if no line detected
+                            motor_left <= 0;
+                            motor_right <= 0;
+                        end
+                    endcase
+                end
+                default: begin
+                    motor_left <= 0;
+                    motor_right <= 0;
+                end
+            endcase
+        end
+    end
+endmodule
+

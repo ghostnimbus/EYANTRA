@@ -1,0 +1,151 @@
+module start_end_points_decoder(
+    input  wire         clk,
+    input  wire         rst,
+    // Signals from Eco Center:
+    input  wire         csl_valid,              // New CSL message available
+    input  wire [4:0]   csl_start,              // Start point from the CSL message
+    input  wire [4:0]   csl_end,                // End point from the CSL message
+    input  wire [4:0]   csl_prev_node_of_end_point,
+    input  wire [4:0]   cpu_prev_node_of_end_point,
+    // Signals from SAM messages:
+    input  wire         sam_valid,              // New SAM message available
+    input  wire [4:0]   sam_pick,               // Pick node from SAM message
+    input  wire [4:0]   sam_place,              // Place node from SAM message
+    // External signal: robot has reached the current destination.
+    input  wire         arrived,
+    // External subunit count provided from outside (1 to 3)
+    input  wire [1:0]   subunit,
+    // Outputs: current start and end points and previous node of start.
+    output reg [4:0]    start_point,
+    output reg [4:0]    end_point,
+    output reg [4:0]    prev_node_of_start_point,
+    // Signal to activate pick/place operation when a pick or place destination is reached.
+    output reg          activate_operation,
+    // Optional output: indicates the overall run is done
+    output reg          run_done
+);
+
+  // FSM state encoding.
+  localparam S_INIT              = 0;
+  localparam S_WAIT_CSL          = 1;
+  localparam S_PROC_CSL          = 2;
+  localparam S_WAIT_ARRIVE_CSL   = 3;
+  localparam S_WAIT_SAM          = 4;
+  localparam S_PROC_SAM_PICK     = 5;
+  localparam S_WAIT_ARRIVE_PICK  = 6;
+  localparam S_PROC_SAM_PLACE    = 7;
+  localparam S_WAIT_ARRIVE_PLACE = 8;
+  localparam S_DONE              = 9; // optional
+
+  reg [3:0] state;
+
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      state                    <= S_INIT;
+      start_point              <= 5'd1;  // initial start point (example)
+      end_point                <= 5'd0;
+      prev_node_of_start_point <= 5'd0;
+      run_done                 <= 1'b0;
+      activate_operation       <= 1'b0;
+    end else begin
+      case (state)
+        S_INIT: begin
+          // Initialize and wait for a CSL message.
+          start_point              <= 5'd1;
+          prev_node_of_start_point <= 5'd0;
+          activate_operation       <= 1'b0;
+          state                    <= S_WAIT_CSL;
+        end
+
+        S_WAIT_CSL: begin
+          if (csl_valid)
+            state <= S_PROC_CSL;
+          else
+            activate_operation <= 1'b0;
+        end
+
+        S_PROC_CSL: begin
+          // Use csl_start as the destination.
+          end_point        <= csl_start;
+          activate_operation <= 1'b0;
+          state            <= S_WAIT_ARRIVE_CSL;
+        end
+
+        S_WAIT_ARRIVE_CSL: begin
+          if (arrived) begin
+            // Once arrived at the CSL-specified start destination:
+            start_point              <= csl_end;
+            prev_node_of_start_point <= csl_prev_node_of_end_point;
+            activate_operation       <= 1'b1; // assert pick/place activation (if needed)
+            state <= S_WAIT_SAM;
+          end else begin
+            activate_operation <= 1'b0;
+          end
+        end
+
+        S_WAIT_SAM: begin
+          activate_operation <= 1'b0;
+          if (sam_valid)
+            state <= S_PROC_SAM_PICK;
+          else if (csl_valid)
+            state <= S_PROC_CSL;
+        end
+
+        S_PROC_SAM_PICK: begin
+          // The first destination of SAM is the pick node.
+          end_point <= sam_pick;
+          activate_operation <= 1'b0;
+          state <= S_WAIT_ARRIVE_PICK;
+        end
+
+        S_WAIT_ARRIVE_PICK: begin
+          if (arrived) begin
+            // When pick node is reached, assert activation signal to start pick operation.
+            activate_operation       <= 1'b1;
+            // Update start_point and previous node.
+            start_point              <= sam_pick;
+            prev_node_of_start_point <= cpu_prev_node_of_end_point;
+            state <= S_PROC_SAM_PLACE;
+          end else begin
+            activate_operation <= 1'b0;
+          end
+        end
+
+        S_PROC_SAM_PLACE: begin
+          // Next, destination is the place node.
+          end_point <= sam_place;
+          activate_operation <= 1'b0;
+          state <= S_WAIT_ARRIVE_PLACE;
+        end
+
+        S_WAIT_ARRIVE_PLACE: begin
+          if (arrived) begin
+            // When place node is reached, assert activation for deposit operation.
+            activate_operation       <= 1'b1;
+            start_point              <= sam_place;
+            prev_node_of_start_point <= cpu_prev_node_of_end_point;
+            // If external subunit count equals 3, return to CSL waiting.
+            if (subunit == 2'd3)
+              state <= S_DONE;
+            else
+              state <= S_WAIT_SAM;
+          end else begin
+            activate_operation <= 1'b0;
+          end
+        end
+
+        S_DONE: begin
+          run_done <= 1'b1;
+          state <= S_WAIT_CSL;
+          activate_operation <= 1'b0;
+        end
+
+        default: begin
+          state <= S_INIT;
+          activate_operation <= 1'b0;
+        end
+      endcase
+    end
+  end
+
+endmodule

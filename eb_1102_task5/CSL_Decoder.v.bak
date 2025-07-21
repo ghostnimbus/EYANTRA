@@ -1,0 +1,108 @@
+module CSL_Decoder(
+    input wire clk,
+    input wire rx_complete,    // Goes high when a character is received
+    input wire [7:0] rx_msg,   // Received character
+    input wire task_complete,  // Signal from bot indicating task is done
+    output reg Go_to_PU,       // Prototyping Unit signal
+    output reg Go_to_FU,       // Fabrication Unit signal
+    output reg Go_to_WU,       // Warehouse Unit signal
+	 output reg [1:0] unit_type
+);
+
+    reg [3:0] state;  // FSM state variable
+    reg Go_to_PU_next, Go_to_FU_next, Go_to_WU_next; // Store next request
+	 reg request_count;// 0 = Home, 1 = One request pending
+	 
+    initial begin
+        state = 0;
+        request_count = 0;
+        Go_to_PU = 0;
+        Go_to_FU = 0;
+        Go_to_WU = 0;
+        Go_to_PU_next = 0;
+        Go_to_FU_next = 0;
+        Go_to_WU_next = 0;
+		  unit_type = 0;
+    end
+
+    always @(posedge clk) begin
+        if (task_complete) begin
+            // Reset request count and move to the next stored request (if any)
+            if (request_count == 1) begin
+                request_count <= 0;
+                Go_to_PU <= Go_to_PU_next;
+                Go_to_FU <= Go_to_FU_next;
+                Go_to_WU <= Go_to_WU_next;
+                Go_to_PU_next <= 0;
+                Go_to_FU_next <= 0;
+                Go_to_WU_next <= 0;
+            end else begin
+                request_count <= 0;
+                Go_to_PU <= 0;
+                Go_to_FU <= 0;
+                Go_to_WU <= 0;
+            end
+        end
+
+        if (rx_complete) begin
+            case (state)
+                0: if (rx_msg == "C") state <= 1; else state <= 0;
+                1: if (rx_msg == "S") state <= 2; else state <= 0;
+                2: if (rx_msg == "L") state <= 3; else state <= 0;
+                3: if (rx_msg == "-") state <= 4; else state <= 0;
+                4: if (rx_msg == "P") begin 
+							 state <= 5; // PU
+							 unit_type <= 1;
+						 end else if (rx_msg == "F") begin
+							 state <= 8; // FU
+							 unit_type <= 2;
+						 end else if (rx_msg == "W") begin
+							 state <= 11; // WU
+							 unit_type <= 3;
+						 end
+                   else state <= 0;
+                
+                // Prototyping Unit (PU)
+                5: if (rx_msg == "U") state <= 6; else state <= 0;
+                6: if (rx_msg == "-") state <= 7; else state <= 0;
+                7: if (rx_msg == "#") begin
+                        if (request_count == 0) begin
+                            Go_to_PU <= 1; Go_to_FU <= 0; Go_to_WU <= 0;
+                            request_count <= 1;
+                        end else begin
+                            Go_to_PU_next <= 1;
+                        end
+                        state <= 0;
+                   end else state <= 0;
+
+                // Fabrication Unit (FU)
+                8: if (rx_msg == "U") state <= 9; else state <= 0;
+                9: if (rx_msg == "-") state <= 10; else state <= 0;
+                10: if (rx_msg == "#") begin
+                        if (request_count == 0) begin
+                            Go_to_PU <= 0; Go_to_FU <= 1; Go_to_WU <= 0;
+                            request_count <= 1;
+                        end else begin
+                            Go_to_FU_next <= 1;
+                        end
+                        state <= 0;
+                    end else state <= 0;
+
+                // Warehouse Unit (WU)
+                11: if (rx_msg == "U") state <= 12; else state <= 0;
+                12: if (rx_msg == "-") state <= 13; else state <= 0;
+                13: if (rx_msg == "#") begin
+                        if (request_count == 0) begin
+                            Go_to_PU <= 0; Go_to_FU <= 0; Go_to_WU <= 1;
+                            request_count <= 1;
+                        end else begin
+                            Go_to_WU_next <= 1;
+                        end
+                        state <= 0;
+                    end else state <= 0;
+
+                default: state <= 0;
+            endcase
+        end
+    end
+endmodule

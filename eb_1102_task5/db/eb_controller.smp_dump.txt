@@ -1,0 +1,143 @@
+
+State Machine - |eb_controller_top_module|led_logic:inst5|led_no
+Name led_no.00 led_no.10 led_no.01 
+led_no.00 0 0 0 
+led_no.01 1 0 1 
+led_no.10 1 1 0 
+
+State Machine - |eb_controller_top_module|black_line_following:inst25|current_state
+Name current_state.UTURN_REVERSE current_state.LINE_FOLLOW current_state.TURN current_state.IDLE current_state.UTURN_TURN 
+current_state.IDLE 0 0 0 0 0 
+current_state.TURN 0 0 1 1 0 
+current_state.LINE_FOLLOW 0 1 0 1 0 
+current_state.UTURN_REVERSE 1 0 0 1 0 
+current_state.UTURN_TURN 0 0 0 1 1 
+
+State Machine - |eb_controller_top_module|SLM:inst18|state
+Name state.S_TX state.S_IDLE state.S_WAIT 
+state.S_IDLE 0 0 0 
+state.S_TX 1 1 0 
+state.S_WAIT 0 1 1 
+
+State Machine - |eb_controller_top_module|RPM:inst22|state
+Name state.S_WAIT state.S_TX state.S_LOAD state.S_IDLE state.S_DONE 
+state.S_IDLE 0 0 0 0 0 
+state.S_LOAD 0 0 1 1 0 
+state.S_TX 0 1 0 1 0 
+state.S_WAIT 1 0 0 1 0 
+state.S_DONE 0 0 0 1 1 
+
+State Machine - |eb_controller_top_module|SAM_Decoder:inst27|state
+Name state.S_WAIT state.S_PROCESS state.S_HASH state.S_DASH4 state.S_TOKEN3_2 state.S_TOKEN3_1 state.S_TOKEN3_0 state.S_DOT3 state.S_3 state.S_DASH3 state.S_TOKEN2_2 state.S_TOKEN2_1 state.S_TOKEN2_0 state.S_DOT2 state.S_2 state.S_DASH2 state.S_TOKEN1_2 state.S_TOKEN1_1 state.S_TOKEN1_0 state.S_DOT1 state.S_1 state.S_DASH1 state.S_M state.S_A state.S_IDLE 
+state.S_IDLE 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+state.S_A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 
+state.S_M 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 
+state.S_DASH1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 
+state.S_1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 
+state.S_DOT1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 
+state.S_TOKEN1_0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 
+state.S_TOKEN1_1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 
+state.S_TOKEN1_2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 
+state.S_DASH2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 
+state.S_2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 
+state.S_DOT2 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN2_0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN2_1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN2_2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_DASH3 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_3 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_DOT3 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN3_0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN3_1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_TOKEN3_2 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_DASH4 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_HASH 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_PROCESS 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+state.S_WAIT 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+
+State Machine - |eb_controller_top_module|cpu_controller:inst8|present
+Name present.WRITE_MEM present.IDLE present.READ_MEM 
+present.WRITE_MEM 0 0 0 
+present.READ_MEM 1 0 1 
+present.IDLE 1 1 0 
+
+State Machine - |eb_controller_top_module|uart_rx:inst16|state
+Name state.PARITY state.DATA state.START state.IDLE state.STOP 
+state.IDLE 0 0 0 0 0 
+state.START 0 0 1 1 0 
+state.DATA 0 1 0 1 0 
+state.PARITY 1 0 0 1 0 
+state.STOP 0 0 0 1 1 
+
+State Machine - |eb_controller_top_module|CSL_Decoder:inst28|state
+Name state.1101 state.1100 state.1011 state.1010 state.1001 state.1000 state.0111 state.0110 state.0101 state.0100 state.0011 state.0010 state.0001 state.0000 
+state.0000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+state.0001 0 0 0 0 0 0 0 0 0 0 0 0 1 1 
+state.0010 0 0 0 0 0 0 0 0 0 0 0 1 0 1 
+state.0011 0 0 0 0 0 0 0 0 0 0 1 0 0 1 
+state.0100 0 0 0 0 0 0 0 0 0 1 0 0 0 1 
+state.0101 0 0 0 0 0 0 0 0 1 0 0 0 0 1 
+state.0110 0 0 0 0 0 0 0 1 0 0 0 0 0 1 
+state.0111 0 0 0 0 0 0 1 0 0 0 0 0 0 1 
+state.1000 0 0 0 0 0 1 0 0 0 0 0 0 0 1 
+state.1001 0 0 0 0 1 0 0 0 0 0 0 0 0 1 
+state.1010 0 0 0 1 0 0 0 0 0 0 0 0 0 1 
+state.1011 0 0 1 0 0 0 0 0 0 0 0 0 0 1 
+state.1100 0 1 0 0 0 0 0 0 0 0 0 0 0 1 
+state.1101 1 0 0 0 0 0 0 0 0 0 0 0 0 1 
+
+State Machine - |eb_controller_top_module|start_end_points_decoder:inst13|state
+Name state.S_DONE state.S_WAIT_ARRIVE_PLACE state.S_PROC_SAM_PLACE state.S_WAIT_ARRIVE_PICK state.S_PROC_SAM_PICK state.S_WAIT_SAM state.S_WAIT_ARRIVE_CSL state.S_PROC_CSL state.S_WAIT_CSL state.S_INIT 
+state.S_INIT 0 0 0 0 0 0 0 0 0 0 
+state.S_WAIT_CSL 0 0 0 0 0 0 0 0 1 1 
+state.S_PROC_CSL 0 0 0 0 0 0 0 1 0 1 
+state.S_WAIT_ARRIVE_CSL 0 0 0 0 0 0 1 0 0 1 
+state.S_WAIT_SAM 0 0 0 0 0 1 0 0 0 1 
+state.S_PROC_SAM_PICK 0 0 0 0 1 0 0 0 0 1 
+state.S_WAIT_ARRIVE_PICK 0 0 0 1 0 0 0 0 0 1 
+state.S_PROC_SAM_PLACE 0 0 1 0 0 0 0 0 0 1 
+state.S_WAIT_ARRIVE_PLACE 0 1 0 0 0 0 0 0 0 1 
+state.S_DONE 1 0 0 0 0 0 0 0 0 1 
+
+State Machine - |eb_controller_top_module|servo_gripper:inst4|current_state
+Name current_state.LEAVE_MOVING_UP current_state.LEAVE_WAIT current_state.LEAVE_OPENING_GRIPPER current_state.LEAVE_MOVING_DOWN current_state.GRIP_MOVING_UP current_state.GRIP_WAIT_2 current_state.GRIP_CLOSING_GRIPPER current_state.GRIP_WAIT_1 current_state.GRIP_MOVING_DOWN current_state.IDLE 
+current_state.IDLE 0 0 0 0 0 0 0 0 0 0 
+current_state.GRIP_MOVING_DOWN 0 0 0 0 0 0 0 0 1 1 
+current_state.GRIP_WAIT_1 0 0 0 0 0 0 0 1 0 1 
+current_state.GRIP_CLOSING_GRIPPER 0 0 0 0 0 0 1 0 0 1 
+current_state.GRIP_WAIT_2 0 0 0 0 0 1 0 0 0 1 
+current_state.GRIP_MOVING_UP 0 0 0 0 1 0 0 0 0 1 
+current_state.LEAVE_MOVING_DOWN 0 0 0 1 0 0 0 0 0 1 
+current_state.LEAVE_OPENING_GRIPPER 0 0 1 0 0 0 0 0 0 1 
+current_state.LEAVE_WAIT 0 1 0 0 0 0 0 0 0 1 
+current_state.LEAVE_MOVING_UP 1 0 0 0 0 0 0 0 0 1 
+
+State Machine - |eb_controller_top_module|servo_gripper:inst4|prev_state
+Name prev_state.LEAVE_MOVING_UP prev_state.LEAVE_WAIT prev_state.LEAVE_OPENING_GRIPPER prev_state.LEAVE_MOVING_DOWN prev_state.GRIP_MOVING_UP prev_state.GRIP_WAIT_2 prev_state.GRIP_CLOSING_GRIPPER prev_state.GRIP_WAIT_1 prev_state.GRIP_MOVING_DOWN prev_state.IDLE 
+prev_state.IDLE 0 0 0 0 0 0 0 0 0 0 
+prev_state.GRIP_MOVING_DOWN 0 0 0 0 0 0 0 0 1 1 
+prev_state.GRIP_WAIT_1 0 0 0 0 0 0 0 1 0 1 
+prev_state.GRIP_CLOSING_GRIPPER 0 0 0 0 0 0 1 0 0 1 
+prev_state.GRIP_WAIT_2 0 0 0 0 0 1 0 0 0 1 
+prev_state.GRIP_MOVING_UP 0 0 0 0 1 0 0 0 0 1 
+prev_state.LEAVE_MOVING_DOWN 0 0 0 1 0 0 0 0 0 1 
+prev_state.LEAVE_OPENING_GRIPPER 0 0 1 0 0 0 0 0 0 1 
+prev_state.LEAVE_WAIT 0 1 0 0 0 0 0 0 0 1 
+prev_state.LEAVE_MOVING_UP 1 0 0 0 0 0 0 0 0 1 
+
+State Machine - |eb_controller_top_module|RDM:inst21|state
+Name state.S_WAIT state.S_TX state.S_LOAD state.S_IDLE state.S_DONE 
+state.S_IDLE 0 0 0 0 0 
+state.S_LOAD 0 0 1 1 0 
+state.S_TX 0 1 0 1 0 
+state.S_WAIT 1 0 0 1 0 
+state.S_DONE 0 0 0 1 1 
+
+State Machine - |eb_controller_top_module|uart_tx:inst17|state
+Name state.DONE state.STOP state.PARITY state.DATA state.START state.IDLE 
+state.IDLE 0 0 0 0 0 0 
+state.START 0 0 0 0 1 1 
+state.DATA 0 0 0 1 0 1 
+state.PARITY 0 0 1 0 0 1 
+state.STOP 0 1 0 0 0 1 
+state.DONE 1 0 0 0 0 1 
